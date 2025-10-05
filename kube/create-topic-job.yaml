@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-kafka-topic
+spec:
+  template:
+    spec:
+      containers:
+        - name: kafka-topic-creator
+          image: confluentinc/cp-kafka:7.3.0
+          command:
+            - sh
+            - -c
+            - |
+              kafka-topics --create --topic buildings-data \
+              --partitions 1 --replication-factor 1 \
+              --bootstrap-server kafka-service:9092
+      restartPolicy: Never

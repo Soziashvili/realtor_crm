@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: price-history
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: price-history
+  template:
+    metadata:
+      labels:
+        app: price-history
+    spec:
+      containers:
+        - name: price-history
+          image: dotochka/price-history:v1.0
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres-service-price:5432/service_price_db"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "postgres"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "password"
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-service:9092"
+            - name: SPRING_KAFKA_CONSUMER_GROUP_ID
+              value: "history_group"
+            - name: SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET
+              value: "earliest"
+            - name: SPRING_KAFKA_CONSUMER_ENABLE_AUTO_COMMIT
+              value: "false"
+            - name: KAFKA_TOPIC
+              value: "buildings-data"
+            - name: KAFKA_CLIENT_ID
+              value: "java-consumer"
+          command:
+            - "sh"
+            - "-c"
+            - |
+              echo "Database URL: $SPRING_DATASOURCE_URL"
+              echo "Kafka servers: $SPRING_KAFKA_BOOTSTRAP_SERVERS"
+              java -jar /app.jar
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+          ports:
+            - containerPort: 8083
+              protocol: TCP
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: price-history
+spec:
+  selector:
+    app: price-history
+  ports:
+    - port: 80
+      targetPort: 8083
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-service-price
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-service-price
+  template:
+    metadata:
+      labels:
+        app: postgres-service-price
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          env:
+            - name: POSTGRES_DB
+              value: service_price_db
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: password
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-storage
+          emptyDir:
+            {}
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service-price
+spec:
+  selector:
+    app: postgres-service-price
+  ports:
+    - port: 5432
+      targetPort: 5432

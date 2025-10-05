@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: core-crm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: core-crm
+  template:
+    metadata:
+      labels:
+        app: core-crm
+    spec:
+      containers:
+        - name: core-crm
+          image: dotochka/core-crm:v1.0
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres-service-core-crm:5432/service_core_crm_db"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "postgres"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "password"
+          command:
+            - "sh"
+            - "-c"
+            - |
+              echo "Database URL: $SPRING_DATASOURCE_URL"
+              echo "Kafka servers: $SPRING_KAFKA_BOOTSTRAP_SERVERS"
+              java -jar /app.jar
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: 256Mi
+              cpu: 100m
+            limits:
+              memory: 512Mi
+              cpu: 500m
+          ports:
+            - containerPort: 8081
+              protocol: TCP
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: core-crm
+spec:
+  selector:
+    app: core-crm
+  ports:
+    - port: 80
+      targetPort: 8081
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-service-core-crm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-service-core-crm
+  template:
+    metadata:
+      labels:
+        app: postgres-service-core-crm
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          env:
+            - name: POSTGRES_DB
+              value: service_core_crm_db
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: password
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-storage
+          emptyDir:
+            {}
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service-core-crm
+spec:
+  selector:
+    app: postgres-service-core-crm
+  ports:
+    - port: 5432
+      targetPort: 5432
