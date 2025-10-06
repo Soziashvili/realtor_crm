@@ -14,7 +14,7 @@
 * Удаление <code>DELETE /api/buildings/{id}</code><br>
 
 **REST endpoints (Users):**<br>
-* Получение всех <code>GET /api/users</code>
+* Получение всех менеджеров<code>GET /api/users</code>
 * Получение по id <code>GET /api/users/{id}</code>    
 * Создание <code>POST /api/users</code>
 * Изменение <code>PUT /api/users/{id}</code>
