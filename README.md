@@ -1,10 +1,11 @@
 # CRM для риелторского агентства
 
-**Описание функционала микросервисаов**
+**Описание функционала микросервисов**
 
-Сервис представляет собой упрощенную систему риелторского агентства управления заданиями и обработки объектов недвижимости:
+Сервисы представляют собой упрощенную систему риелторского агентства управления заданиями и обработки объектов недвижимости:
 
-***1. Core CRM*** CRM для продаж: назначение заданий на менеджеров, создание автоматических заданий и т.д.<br>
+***1. Core CRM.*** Сервис для продаж: назначение заданий на менеджеров, создание автоматических заданий и т.д.<br>
+
 **REST endpoints (Building):**<br>
 * Получение всех сущностей <code>GET /api/buildings</code>
 * Получение здания по id <code>GET /api/buildings/{id}</code>    
@@ -26,15 +27,16 @@
 * Изменение <code>PUT /api/tasks/{id}</code>
 * Назначение задания на менеджера <code>POST /api/tasks/{id}/assign</code>
 
-***2. ContentLoaderAdapter*** Загрузка данных по зданиям из xlsx-файлов и отправка в топик Kafka ("buildings-data"). Excel-файлы с данными находятся в папке ./uploads<br>
-***REST endpoints:*** <br>
+***2. ContentLoaderAdapter.*** Загрузка данных по зданиям из xlsx-файлов и отправка в топик Kafka ("buildings-data"). Excel-файлы с данными находятся в папке ./uploads<br>
+
+**REST endpoints:** <br>
 * Загрузка xlsx-файла <code>POST /api/content-loader/upload</code>
 
-***3. ContentProcessor*** Сервис читает данные из Kafka-топика "buildings-data" и батчами обновляет содержимое Estate (недвижимость) объектов.
+***3. ContentProcessor.*** Сервис читает данные из Kafka-топика "buildings-data" и батчами обновляет содержимое Estate (недвижимость) объектов.
 
-***4. PriceHistory*** Читает топик "buildings-data" и хранит все данные по ценам и типу источника (Домклик, Росреестр, Циан) в виде истории.
+***4. PriceHistory.*** Читает топик "buildings-data" и хранит все данные по ценам и типу источника (Домклик, Росреестр, Циан) в виде истории.
 
-***5. NotificationSender*** Читает топик "buildings-data" и отправляет запросы в сервисы для отправки смс и почтовые сервисы.
+***5. NotificationSender.*** Читает топик "buildings-data" и отправляет запросы в сервисы для отправки смс и почтовые сервисы.
 ________________________________________
 **Технологии:**
 
@@ -53,14 +55,14 @@ ________________________________________
 
 **Применим все конфигурации**
 
-> kubectl apply -f kafka-zookeeper.yaml
-> kubectl apply -f kafka-deployment.yaml
-> kubectl apply -f create-topic-job.yaml
-> kubectl apply -f content-loader-service.yaml
-> kubectl apply -f content-processor-service.yaml
-> kubectl apply -f price-history-service.yaml
-> kubectl apply -f notification-service.yaml
-> kubectl apply -f core-crm-service.yaml
+> kubectl apply -f kafka-zookeeper.yaml<br>
+> kubectl apply -f kafka-deployment.yaml<br>
+> kubectl apply -f create-topic-job.yaml<br>
+> kubectl apply -f content-loader-service.yaml<br>
+> kubectl apply -f content-processor-service.yaml<br>
+> kubectl apply -f price-history-service.yaml<br>
+> kubectl apply -f notification-service.yaml<br>
+> kubectl apply -f core-crm-service.yaml<br>
 
 **Проверим статус**
 
@@ -76,11 +78,11 @@ ________________________________________
 
 **Проверим логи**
 
-> kubectl logs -f service/content-loader
-> kubectl logs -f service/content-processor
-> kubectl logs -f service/notificaton-processor
-> kubectl logs -f service/price-history
-
+> kubectl logs -f service/content-loader<br>
+> kubectl logs -f service/content-processor<br>
+> kubectl logs -f service/notificaton-processor<br>
+> kubectl logs -f service/price-history<br>
+-------------------------------------------------------------------------------------
 **Для загрузки xlsx файла пробросим порт сервиса content-loader к себе на localhost**
 
 > kubectl port-forward service/content-loader 8080:80
